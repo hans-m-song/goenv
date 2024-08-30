@@ -675,6 +675,42 @@ func TestEnvPrefixed(t *testing.T) {
 	Equals(t, "hello", config.Prop)
 }
 
+func TestEnumUnmatched(t *testing.T) {
+	os.Setenv("PROP", "foo")
+
+	config := struct {
+		Prop string `env:"PROP" enum:"1,2,3"`
+	}{}
+
+	err := Set(&config)
+	ErrorNotNil(t, err)
+	Assert(t, strings.HasPrefix(err.Error(), `error setting "Prop": "foo" is not a member of [1,2,3]`))
+}
+
+func TestEnumMatchedString(t *testing.T) {
+	os.Setenv("PROP", "foo")
+
+	config := struct {
+		Prop string `env:"PROP" enum:"foo,bar,baz"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Assert(t, config.Prop == "foo")
+}
+
+func TestEnumMatchedInteger(t *testing.T) {
+	os.Setenv("PROP", "1")
+
+	config := struct {
+		Prop int `env:"PROP" enum:"1,2,3"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Assert(t, config.Prop == 1)
+}
+
 type configDuration struct {
 	Duration time.Duration
 }

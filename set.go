@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -178,4 +179,19 @@ func getDelimiter(t reflect.StructField) string {
 		return d
 	}
 	return ","
+}
+
+func checkEnum(t reflect.StructField, value string) (err error) {
+	rawChoices, ok := t.Tag.Lookup("enum")
+	if !ok {
+		return
+	}
+
+	delimiter := getDelimiter(t)
+	choices := split(rawChoices, delimiter)
+	if !slices.Contains(choices, value) {
+		return fmt.Errorf(`"%s" is not a member of [%s]`, value, strings.Join(choices, ","))
+	}
+
+	return
 }
