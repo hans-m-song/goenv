@@ -107,6 +107,10 @@ func setField(t reflect.StructField, v reflect.Value, value string) (err error) 
 		return setSlice(t, v, value)
 	}
 
+	if err = checkEnum(t, value); err != nil {
+		return fmt.Errorf("error setting %q: %v", t.Name, err)
+	}
+
 	if err = setBuiltInField(v, value); err != nil {
 		return fmt.Errorf("error setting %q: %v", t.Name, err)
 	}

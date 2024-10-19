@@ -388,6 +388,90 @@ func TestEnvWithDefaultWhenProvided(t *testing.T) {
 	Equals(t, "goodbye", config.Prop)
 }
 
+func TestEnvEnumUnmatched(t *testing.T) {
+	os.Setenv("PROP", "foo")
+
+	config := struct {
+		Prop string `env:"PROP" enum:"1,2,3"`
+	}{}
+
+	err := Set(&config)
+	ErrorNotNil(t, err)
+	Assert(t, strings.HasPrefix(err.Error(), `error setting "Prop": "foo" is not a member of [1,2,3]`))
+}
+
+func TestEnvEnumMatchedString(t *testing.T) {
+	os.Setenv("PROP", "foo")
+
+	config := struct {
+		Prop string `env:"PROP" enum:"foo,bar,baz"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Assert(t, config.Prop == "foo")
+}
+
+func TestEnvEnumMatchedInteger(t *testing.T) {
+	os.Setenv("PROP", "1")
+
+	config := struct {
+		Prop int `env:"PROP" enum:"1,2,3"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Assert(t, config.Prop == 1)
+}
+
+func TestEnvEnumMatchedStringSlice(t *testing.T) {
+	os.Setenv("PROP", "foo,bar,baz")
+
+	config := struct {
+		Prop []string `env:"PROP" enum:"foo,bar,baz"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Equals(t, []string{"foo", "bar", "baz"}, config.Prop)
+}
+
+func TestEnvEnumUnmatchedStringSlice(t *testing.T) {
+	os.Setenv("PROP", "foo,bar,baz")
+
+	config := struct {
+		Prop []string `env:"PROP" enum:"foo,baz"`
+	}{}
+
+	err := Set(&config)
+	ErrorNotNil(t, err)
+	Equals(t, `error setting "Prop": "bar" is not a member of [foo,baz]`, err.Error())
+}
+
+func TestEnvEnumMatchedIntSlice(t *testing.T) {
+	os.Setenv("PROP", "1,3")
+
+	config := struct {
+		Prop []int `env:"PROP" enum:"1,3,5"`
+	}{}
+
+	err := Set(&config)
+	ErrorNil(t, err)
+	Equals(t, []int{1, 3}, config.Prop)
+}
+
+func TestEnvEnumUnmatchedIntSlice(t *testing.T) {
+	os.Setenv("PROP", "1,2,3")
+
+	config := struct {
+		Prop []int `env:"PROP" enum:"1,3,5"`
+	}{}
+
+	err := Set(&config)
+	ErrorNotNil(t, err)
+	Equals(t, `error setting "Prop": "2" is not a member of [1,3,5]`, err.Error())
+}
+
 func TestEnvWithDefaultWhenMissing(t *testing.T) {
 	unsetEnvironment()
 

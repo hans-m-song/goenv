@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -106,6 +107,12 @@ func setSlice(t reflect.StructField, v reflect.Value, value string) (err error) 
 		return
 	}
 
+	for _, rawValue := range rawValues {
+		if err = checkEnum(t, rawValue); err != nil {
+			return fmt.Errorf("error setting %q: %v", t.Name, err)
+		}
+	}
+
 	sliceValue, err := makeSlice(v, len(rawValues))
 	if err != nil {
 		return
@@ -178,4 +185,19 @@ func getDelimiter(t reflect.StructField) string {
 		return d
 	}
 	return ","
+}
+
+func checkEnum(t reflect.StructField, value string) (err error) {
+	rawChoices, ok := t.Tag.Lookup("enum")
+	if !ok {
+		return
+	}
+
+	delimiter := getDelimiter(t)
+	choices := split(rawChoices, delimiter)
+	if !slices.Contains(choices, value) {
+		return fmt.Errorf(`"%s" is not a member of [%s]`, value, strings.Join(choices, ","))
+	}
+
+	return
 }

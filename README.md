@@ -30,6 +30,7 @@ type config struct {
 	Port              int           `env:"PORT" required:"true"`
 	Peers             []string      `env:"PEERS"` // you can use `delimiter` tag to specify separator, for example `delimiter:" "` 
 	ConnectionTimeout time.Duration `env:"TIMEOUT" default:"10s"`
+	LogLevel          string        `env:"LOG_LEVEL" enum:"debug info error" delimiter:" "` // the delimiter tag applies to enum as well
 }
 
 func main() {
