@@ -109,7 +109,7 @@ func setSlice(t reflect.StructField, v reflect.Value, value string) (err error) 
 
 	for _, rawValue := range rawValues {
 		if err = checkEnum(t, rawValue); err != nil {
-			return
+			return fmt.Errorf("error setting %q: %v", t.Name, err)
 		}
 	}
 
